@@ -1,0 +1,36 @@
+diff --git a/format/all/all.fqtest b/format/all/all.fqtest
+index 7674bee3..cfe84dff 100644
+--- a/format/all/all.fqtest
++++ b/format/all/all.fqtest
+@@ -157,6 +157,7 @@ prores_frame         Apple ProRes frame
+ protobuf             Protobuf
+ protobuf_widevine    Widevine protobuf
+ pssh_playready       PlayReady PSSH
++pyrdp                PyRDP Replay Files
+ rtmp                 Real-Time Messaging Protocol
+ sll2_packet          Linux cooked capture encapsulation v2
+ sll_packet           Linux cooked capture encapsulation
+diff --git a/format/all/all.go b/format/all/all.go
+index 0eb2b762..b49fcdc6 100644
+--- a/format/all/all.go
++++ b/format/all/all.go
+@@ -52,6 +52,7 @@ import (
+ 	_ "github.com/wader/fq/format/postgres"
+ 	_ "github.com/wader/fq/format/prores"
+ 	_ "github.com/wader/fq/format/protobuf"
++	_ "github.com/wader/fq/format/pyrdp"
+ 	_ "github.com/wader/fq/format/riff"
+ 	_ "github.com/wader/fq/format/rtmp"
+ 	_ "github.com/wader/fq/format/tap"
+diff --git a/format/format.go b/format/format.go
+index 1976c70e..b3d8e01f 100644
+--- a/format/format.go
++++ b/format/format.go
+@@ -164,6 +164,7 @@ var (
+ 	Protobuf            = &decode.Group{Name: "protobuf"}
+ 	ProtobufWidevine    = &decode.Group{Name: "protobuf_widevine"}
+ 	PSSH_Playready      = &decode.Group{Name: "pssh_playready"}
++	PYRDP               = &decode.Group{Name: "pyrdp"}
+ 	RTMP                = &decode.Group{Name: "rtmp"}
+ 	SLL_Packet          = &decode.Group{Name: "sll_packet"}
+ 	SLL2_Packet         = &decode.Group{Name: "sll2_packet"}

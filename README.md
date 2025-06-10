@@ -16,19 +16,38 @@ $ cd fq
 ```
 
 
-### Add the format
+### Apply the patch
 
-Then add the `pyrdp` format to the import list at `format/all/all.go`:
+3 files need to be changed for `fq` to support the `pyrdp` format.
+Inside the `fq` directory, apply the patch with:
+
+```bash
+$ patch -p1 < ../fq-pyrdp/fq-pyrdp.patch
+```
+
+
+### Alternative to Patching
+
+1. Add the `pyrdp` format to the import list at `format/all/all.go`:
 
 ```go
 _ "github.com/wader/fq/format/pyrdp"
 ```
 
-And also to the constants at `format/format.go`:
+2. Add it to the list of decoders in `format/format.go`:
 
 ```go
-        PYRDP               = "pyrdp"
+  PYRDP               = &decode.Group{Name: "pyrdp"}
 ```
+
+3. Add it to tests in `format/all/all.fqtest`:
+
+```
+pyrdp                PyRDP Replay Files
+```
+
+
+### Link to the code
 
 Now that the format was added to the list of available formats, the actual code needs to be copied or linked in the `format/` directory. Here's how you can do the later (as it can be updated independently):
 
