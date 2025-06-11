@@ -1,4 +1,7 @@
-package pyrdp
+// Copyright (c) 2022-2023 GoSecure Inc.
+// Copyright (c) 2024 Flare Systems
+// Licensed under the MIT License
+package pdu
 
 import (
 	"github.com/wader/fq/pkg/decode"
@@ -19,34 +22,35 @@ const (
 	FASTPATH_INPUT_EVENT_QOE_TIMESTAMP = 6
 )
 
-var eventCodesMap = scalar.UintMap{
-	FASTPATH_INPUT_EVENT_SCANCODE:      {Sym: "fastpath_input_event_scancode", Description: ""},
-	FASTPATH_INPUT_EVENT_MOUSE:         {Sym: "fastpath_input_event_mouse", Description: ""},
-	FASTPATH_INPUT_EVENT_MOUSEX:        {Sym: "fastpath_input_event_mousex", Description: ""},
-	FASTPATH_INPUT_EVENT_SYNC:          {Sym: "fastpath_input_event_sync", Description: ""},
-	FASTPATH_INPUT_EVENT_UNICODE:       {Sym: "fastpath_input_event_unicode", Description: ""},
-	FASTPATH_INPUT_EVENT_QOE_TIMESTAMP: {Sym: "fastpath_input_event_qoe_timestamp", Description: ""},
-}
+// commented because unused but we should use one-day
+//var eventCodesMap = scalar.UintMapSymStr{
+//	FASTPATH_INPUT_EVENT_SCANCODE:      "fastpath_input_event_scancode",
+//	FASTPATH_INPUT_EVENT_MOUSE:         "fastpath_input_event_mouse",
+//	FASTPATH_INPUT_EVENT_MOUSEX:        "fastpath_input_event_mousex",
+//	FASTPATH_INPUT_EVENT_SYNC:          "fastpath_input_event_sync",
+//	FASTPATH_INPUT_EVENT_UNICODE:       "fastpath_input_event_unicode",
+//	FASTPATH_INPUT_EVENT_QOE_TIMESTAMP: "fastpath_input_event_qoe_timestamp",
+//}
 
-var eventFnMap = map[int]interface{}{
-	FASTPATH_INPUT_EVENT_SCANCODE:      parseFastpathInputEventScancode,
-	FASTPATH_INPUT_EVENT_MOUSE:         parseFastpathInputEventMouse,
-	FASTPATH_INPUT_EVENT_MOUSEX:        parseFastpathInputEventMousex,
-	FASTPATH_INPUT_EVENT_SYNC:          parseFastpathInputEventSync,
-	FASTPATH_INPUT_EVENT_UNICODE:       parseFastpathInputEventUnicode,
-	FASTPATH_INPUT_EVENT_QOE_TIMESTAMP: parseFastpathInputEventQoeTimestamp,
-}
+//var eventFnMap = map[int]interface{}{
+//	FASTPATH_INPUT_EVENT_SCANCODE:      parseFastpathInputEventScancode,
+//	FASTPATH_INPUT_EVENT_MOUSE:         parseFastpathInputEventMouse,
+//	FASTPATH_INPUT_EVENT_MOUSEX:        parseFastpathInputEventMousex,
+//	FASTPATH_INPUT_EVENT_SYNC:          parseFastpathInputEventSync,
+//	FASTPATH_INPUT_EVENT_UNICODE:       parseFastpathInputEventUnicode,
+//	FASTPATH_INPUT_EVENT_QOE_TIMESTAMP: parseFastpathInputEventQoeTimestamp,
+//}
 
-var fastPathInputEventLengthsMap = map[int]int{
-	FASTPATH_INPUT_EVENT_SCANCODE:      2,
-	FASTPATH_INPUT_EVENT_MOUSE:         7,
-	FASTPATH_INPUT_EVENT_MOUSEX:        7,
-	FASTPATH_INPUT_EVENT_SYNC:          1,
-	FASTPATH_INPUT_EVENT_UNICODE:       3,
-	FASTPATH_INPUT_EVENT_QOE_TIMESTAMP: 5,
-}
+//var fastPathInputEventLengthsMap = map[int]int{
+//	FASTPATH_INPUT_EVENT_SCANCODE:      2,
+//	FASTPATH_INPUT_EVENT_MOUSE:         7,
+//	FASTPATH_INPUT_EVENT_MOUSEX:        7,
+//	FASTPATH_INPUT_EVENT_SYNC:          1,
+//	FASTPATH_INPUT_EVENT_UNICODE:       3,
+//	FASTPATH_INPUT_EVENT_QOE_TIMESTAMP: 5,
+//}
 
-func ParseFastPathInput(d *decode.D, length int64) {
+func parseFastPathInput(d *decode.D, length int64) {
 	d.FieldStruct("fastpath_input", func(d *decode.D) {
 		// var (
 		// 	events uint8 = 1
@@ -63,9 +67,9 @@ func ParseFastPathInput(d *decode.D, length int64) {
 			}
 		})
 
-		input_length := d.FieldU8("input_length1", scalar.UintHex)
-		if input_length&0x80 != 0 {
-			input_length = ((input_length & 0x7f) << 8) | d.FieldU8("input_length2", scalar.UintHex)
+		inputLength := d.FieldU8("input_length1", scalar.UintHex)
+		if inputLength&0x80 != 0 {
+			inputLength = ((inputLength & 0x7f) << 8) | d.FieldU8("input_length2", scalar.UintHex)
 		}
 
 		// d.FieldU64("data_signature", scalar.Hex)
@@ -88,37 +92,38 @@ func ParseFastPathInput(d *decode.D, length int64) {
 		// 	}
 		// })
 
-		input_length -= uint64(d.Pos()-pos) / 8
-		if input_length > 0 {
-			d.FieldRawLen("data", int64(input_length*8))
+		inputLength -= uint64(d.Pos()-pos) / 8
+		if inputLength > 0 {
+			d.FieldRawLen("data", int64(inputLength*8))
 		}
 	})
 }
 
-func parseFastpathInputEventScancode(d *decode.D) {
-	// https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-rdpbcgr/089d362b-31eb-4a1a-b6fa-92fe61bb5dbf
-	d.FieldU8("key_code", charMapper)
-}
+//commented because unused but we should use one-day
+//func parseFastpathInputEventScancode(d *decode.D) {
+//	// https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-rdpbcgr/089d362b-31eb-4a1a-b6fa-92fe61bb5dbf
+//	d.FieldU8("key_code", CharMapper)
+//}
 
-func parseFastpathInputEventMouse(d *decode.D) {
-	// https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-rdpbcgr/16a96ded-b3d3-4468-b993-9c7a51297510
-	d.FieldU16("pointer_flags", scalar.UintHex)
-	d.FieldU16("x")
-	d.FieldU16("y")
-}
-func parseFastpathInputEventMousex(d *decode.D) {
-	// https: //docs.microsoft.com/en-us/openspecs/windows_protocols/ms-rdpbcgr/2ef7632f-2f2a-4de7-ab58-2585cedcdf48
-	d.FieldU16("pointer_flags", scalar.UintHex)
-	d.FieldU16("x")
-	d.FieldU16("y")
-}
-func parseFastpathInputEventSync(d *decode.D) {
-	// https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-rdpbcgr/6c5d0ef9-4653-4d69-9ba9-09ba3acd660f
-	d.FieldU16("padding")
-	d.FieldU32("toggle_flags")
-}
-func parseFastpathInputEventUnicode(d *decode.D) {
-	// https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-rdpbcgr/e7b13e98-d800-42bb-9a1d-6948537d2317
-	d.FieldU16("unicode_code", scalar.UintHex)
-}
-func parseFastpathInputEventQoeTimestamp(d *decode.D) {}
+//func parseFastpathInputEventMouse(d *decode.D) {
+//	// https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-rdpbcgr/16a96ded-b3d3-4468-b993-9c7a51297510
+//	d.FieldU16("pointer_flags", scalar.UintHex)
+//	d.FieldU16("x")
+//	d.FieldU16("y")
+//}
+//func parseFastpathInputEventMousex(d *decode.D) {
+//	// https: //docs.microsoft.com/en-us/openspecs/windows_protocols/ms-rdpbcgr/2ef7632f-2f2a-4de7-ab58-2585cedcdf48
+//	d.FieldU16("pointer_flags", scalar.UintHex)
+//	d.FieldU16("x")
+//	d.FieldU16("y")
+//}
+//func parseFastpathInputEventSync(d *decode.D) {
+//	// https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-rdpbcgr/6c5d0ef9-4653-4d69-9ba9-09ba3acd660f
+//	d.FieldU16("padding")
+//	d.FieldU32("toggle_flags")
+//}
+//func parseFastpathInputEventUnicode(d *decode.D) {
+//	// https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-rdpbcgr/e7b13e98-d800-42bb-9a1d-6948537d2317
+//	d.FieldU16("unicode_code", scalar.UintHex)
+//}
+//func parseFastpathInputEventQoeTimestamp(d *decode.D) {}

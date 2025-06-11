@@ -1,4 +1,7 @@
-package pyrdp
+// Copyright (c) 2022-2023 GoSecure Inc.
+// Copyright (c) 2024 Flare Systems
+// Licensed under the MIT License
+package pdu
 
 import (
 	"github.com/wader/fq/pkg/decode"
@@ -13,62 +16,61 @@ const (
 	RDP10_2  = 0x80007
 	RDP10_3  = 0x80008
 	RDP10_4  = 0x80009
-	RDP10_5  = 0x8000A
-	RDP10_6  = 0x8000B
-	RDP10_7  = 0x8000C
+	RDP10_5  = 0x8000a
+	RDP10_6  = 0x8000b
+	RDP10_7  = 0x8000c
 	RDP10_8  = 0x8000d
 	RDP10_9  = 0x8000e
 	RDP10_10 = 0x8000f
 )
 
-var RDPVersionMap = scalar.UintMap{
-	RDP4:     {Sym: "rdp4", Description: "RDP 4"},
-	RDP5:     {Sym: "rdp5", Description: "RDP 5"},
-	RDP10:    {Sym: "rdp10", Description: "RDP 10"},
-	RDP10_1:  {Sym: "rdp10_1", Description: "RDP 10.1"},
-	RDP10_2:  {Sym: "rdp10_2", Description: "RDP 10.2"},
-	RDP10_3:  {Sym: "rdp10_3", Description: "RDP 10.3"},
-	RDP10_4:  {Sym: "rdp10_4", Description: "RDP 10.4"},
-	RDP10_5:  {Sym: "rdp10_5", Description: "RDP 10.5"},
-	RDP10_6:  {Sym: "rdp10_6", Description: "RDP 10.6"},
-	RDP10_7:  {Sym: "rdp10_7", Description: "RDP 10.7"},
-	RDP10_8:  {Sym: "rdp10_8", Description: "RDP 10.8"},
-	RDP10_9:  {Sym: "rdp10_9", Description: "RDP 10.9"},
-	RDP10_10: {Sym: "rdp10_10", Description: "RDP 10.10"},
+var RDPVersionMap = scalar.UintMapSymStr{
+	RDP4:     "4",
+	RDP5:     "5",
+	RDP10:    "10",
+	RDP10_1:  "10_1",
+	RDP10_2:  "10_2",
+	RDP10_3:  "10_3",
+	RDP10_4:  "10_4",
+	RDP10_5:  "10_5",
+	RDP10_6:  "10_6",
+	RDP10_7:  "10_7",
+	RDP10_8:  "10_8",
+	RDP10_9:  "10_9",
+	RDP10_10: "10_10",
 }
 
 const (
-	CLIENT_CORE     = 0xC001
-	CLIENT_SECURITY = 0xC002
-	CLIENT_NETWORK  = 0xC003
-	CLIENT_CLUSTER  = 0xC004
+	CLIENT_CORE     = 0xc001
+	CLIENT_SECURITY = 0xc002
+	CLIENT_NETWORK  = 0xc003
+	CLIENT_CLUSTER  = 0xc004
 )
 
-// TODO: Fill descriptions.
-var clientDataMap = scalar.UintMap{
-	CLIENT_CORE:     {Sym: "client_core", Description: ""},
-	CLIENT_SECURITY: {Sym: "client_security", Description: ""},
-	CLIENT_NETWORK:  {Sym: "client_network", Description: ""},
-	CLIENT_CLUSTER:  {Sym: "client_cluster", Description: ""},
+var clientDataMap = scalar.UintMapSymStr{
+	CLIENT_CORE:     "core",
+	CLIENT_SECURITY: "security",
+	CLIENT_NETWORK:  "network",
+	CLIENT_CLUSTER:  "cluster",
 }
 
-func ParseClientData(d *decode.D, length int64) {
+func parseClientData(d *decode.D, length int64) {
 	d.FieldStruct("client_data", func(d *decode.D) {
 		header := d.FieldU16("header", clientDataMap)
-		data_len := int64(d.FieldU16("length") - 4)
+		dataLen := int64(d.FieldU16("length") - 4)
 
 		switch header {
 		case CLIENT_CORE:
-			ParseClientDataCore(d, data_len)
+			ParseClientDataCore(d, dataLen)
 		case CLIENT_SECURITY:
-			ParseClientDataSecurity(d, data_len)
+			ParseClientDataSecurity(d, dataLen)
 		case CLIENT_NETWORK:
-			ParseClientDataNetwork(d, data_len)
+			ParseClientDataNetwork(d, dataLen)
 		case CLIENT_CLUSTER:
-			ParseClientDataCluster(d, data_len)
+			ParseClientDataCluster(d, dataLen)
 		default:
 			// Assert() once all functions are implemented and tested.
-			d.FieldRawLen("data", data_len*8)
+			d.FieldRawLen("data", dataLen*8)
 			return
 		}
 	})
@@ -82,7 +84,7 @@ func ParseClientDataCore(d *decode.D, length int64) {
 	d.FieldU16("sas_sequence")
 	d.FieldU32("keyboard_layout")
 	d.FieldU32("client_build")
-	d.FieldStrFn("client_name", toTextUTF16Fn(32))
+	d.FieldUTF16LE("client_name", 32, scalar.StrActualTrim("\x00"))
 	d.FieldU32("keyboard_type")
 	d.FieldU32("keyboard_sub_type")
 	d.FieldU32("keyboard_function_key")
